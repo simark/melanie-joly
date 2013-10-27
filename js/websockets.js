@@ -629,7 +629,7 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
         }
     }
 
-    $rootScope.completeNick = function() {
+    $rootScope.completeWord = function() {
         // input DOM node
         var inputNode = document.getElementById('sendMessage');
 
@@ -642,19 +642,37 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
         // create flat array of nicks
         var activeBuffer = models.getActiveBuffer();
 
-        // complete nick
-        var nickComp = IrcUtils.completeNick(inputText, caretPos,
-            $rootScope.iterCandidate, activeBuffer.flatNicklist(), ':');
+        var comp = {
+            text: inputText,
+            caretPos: caretPos
+        };
 
-        // remember iteration candidate
-        $rootScope.iterCandidate = nickComp.iterCandidate;
+        // try completing command
+        var cmdComp = IrcUtils.completeCmd(inputText, caretPos, $rootScope.iterCandidate);
+        if (cmdComp.foundCmd !== null) {
+            comp = cmdComp;
+
+            // remember iteration candidate
+            $rootScope.iterCandidate = cmdComp.iterCandidate;
+        } else {
+            // try completing nick
+            var nickComp = IrcUtils.completeNick(inputText, caretPos,
+                $rootScope.iterCandidate, activeBuffer.flatNicklist(), ':');
+
+            // remember iteration candidate
+            $rootScope.iterCandidate = nickComp.iterCandidate;
+
+            if (nickComp.foundNick !== null) {
+                comp = nickComp;
+            }
+        }
 
         // update current input
-        inputNode.value = nickComp.text;
+        inputNode.value = comp.text;
 
         // update current caret position
         inputNode.focus();
-        inputNode.setSelectionRange(nickComp.caretPos, nickComp.caretPos);
+        inputNode.setSelectionRange(comp.caretPos, comp.caretPos);
     }
 
     $scope.handleKeyPress = function($event) {
@@ -688,7 +706,7 @@ weechat.controller('WeechatCtrl', ['$rootScope', '$scope', '$store', '$timeout',
         if (code == 9 && !$event.altKey && !$event.ctrlKey) {
             $event.preventDefault();
             $rootScope.iterCandidate = tmpIterCandidate;
-            $rootScope.completeNick();
+            $rootScope.completeWord();
             return true;
         }
 

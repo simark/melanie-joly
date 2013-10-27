@@ -23,70 +23,70 @@ var IrcUtils = {
     },
 
     /**
-     * Completes a single nick.
+     * Completes a single word.
      *
      * @param candidate What to search for
-     * @param nickList Array of current nicks sorted for case insensitive searching
-     * @return Completed nick (null if not found)
+     * @param wordList Array of words sorted for case insensitive searching
+     * @return Completed word (null if not found)
      */
-    _completeSingleNick: function(candidate, nickList) {
-        var foundNick = null;
+    _completeSingleWord: function(candidate, wordList) {
+        var foundWord = null;
 
-        nickList.some(function(nick) {
-            if (nick.toLowerCase().search(candidate.toLowerCase()) == 0) {
+        wordList.some(function(word) {
+            if (word.toLowerCase().search(candidate.toLowerCase()) == 0) {
                 // found!
-                foundNick = nick;
+                foundWord = word;
                 return true;
             }
             return false;
         });
 
-        return foundNick;
+        return foundWord;
     },
 
     /**
-     * Get the next nick when iterating nicks.
+     * Get the next word when iterating words.
      *
-     * @param iterCandidate First characters to look at
-     * @param currentNick Current selected nick
-     * @param nickList Array of current nicks sorted for case insensitive searching
-     * @return Next nick (may be the same)
+     * @param iterCandidate First characters to look at (search criteria)
+     * @param currentWord Current selected word
+     * @param wordList Array of words sorted for case insensitive searching
+     * @return Next word (may be the same)
      */
-    _nextNick: function(iterCandidate, currentNick, nickList) {
+    _nextWord: function(iterCandidate, currentWord, wordList) {
         var firstInGroup = null;
-        var matchingNicks = [];
+        var matchingWords = [];
         var at = null;
         var lcIterCandidate = iterCandidate.toLowerCase();
-        var lcCurrentNick = currentNick.toLowerCase();
+        var lcCurrentWord = currentWord.toLowerCase();
 
-        // collect matching nicks
-        for (var i = 0; i < nickList.length; ++i) {
-            var lcNick = nickList[i].toLowerCase();
-            if (lcNick.search(lcIterCandidate) == 0) {
-                matchingNicks.push(nickList[i]);
-                if (lcCurrentNick == lcNick) {
-                    at = matchingNicks.length - 1;
+        // collect matching words
+        for (var i = 0; i < wordList.length; ++i) {
+            var lcWord = wordList[i].toLowerCase();
+            if (lcWord.search(lcIterCandidate) == 0) {
+                matchingWords.push(wordList[i]);
+                if (lcCurrentWord == lcWord) {
+                    at = matchingWords.length - 1;
                 }
-            } else if (matchingNicks.length > 0) {
+            } else if (matchingWords.length > 0) {
                 // end of group, no need to check after this
                 break;
             }
         }
 
-        if (at == null || matchingNicks.length == 0) {
-            return currentNick;
+        if (at == null || matchingWords.length == 0) {
+            return currentWord;
         } else {
             ++at;
-            if (at == matchingNicks.length) {
+            if (at == matchingWords.length) {
                 // cycle
                 at = 0;
             }
-            return matchingNicks[at];
+            return matchingWords[at];
         }
     },
 
     /**
-     * Nicks tab completion.
+     * Nick completion.
      *
      * @param text Plain text (no colors)
      * @param caretPos Current caret position (0 means before the first character)
@@ -125,7 +125,7 @@ var IrcUtils = {
         if (m) {
             if (doIterate) {
                 // try iterating
-                var newNick = IrcUtils._nextNick(iterCandidate, m[1], searchNickList);
+                var newNick = IrcUtils._nextWord(iterCandidate, m[1], searchNickList);
                 beforeCaret = newNick + suf + ' ';
                 return {
                     text: beforeCaret + afterCaret,
@@ -143,7 +143,7 @@ var IrcUtils = {
         m = beforeCaret.match(/^([a-zA-Z0-9_\\\[\]{}^`|-]+)$/);
         if (m) {
             // try completing
-            var newNick = IrcUtils._completeSingleNick(m[1], searchNickList);
+            var newNick = IrcUtils._completeSingleWord(m[1], searchNickList);
             if (newNick === null) {
                 // no match
                 return ret;
@@ -166,7 +166,7 @@ var IrcUtils = {
         if (m) {
             if (doIterate) {
                 // try iterating
-                var newNick = IrcUtils._nextNick(iterCandidate, m[2], searchNickList);
+                var newNick = IrcUtils._nextWord(iterCandidate, m[2], searchNickList);
                 beforeCaret = m[1] + newNick + ' ';
                 return {
                     text: beforeCaret + afterCaret,
@@ -184,7 +184,7 @@ var IrcUtils = {
         m = beforeCaret.match(/^(.* )([a-zA-Z0-9_\\\[\]{}^`|-]+)$/);
         if (m) {
             // try completing
-            var newNick = IrcUtils._completeSingleNick(m[2], searchNickList);
+            var newNick = IrcUtils._completeSingleWord(m[2], searchNickList);
             if (newNick === null) {
                 // no match
                 return ret;
@@ -204,5 +204,133 @@ var IrcUtils = {
 
         // completion not possible
         return ret;
+    },
+
+    _ircCommands: [
+        'ADMIN',
+        'AWAY',
+        'CNOTICE',
+        'CPRIVMSG',
+        'CONNECT',
+        'DIE',
+        'ENCAP',
+        'ERROR',
+        'HELP',
+        'INFO',
+        'INVITE',
+        'ISON',
+        'JOIN',
+        'KICK',
+        'KILL',
+        'KNOCK',
+        'LINKS',
+        'LIST',
+        'LUSERS',
+        'MODE',
+        'MOTD',
+        'NAMES',
+        'NAMESX',
+        'NICK',
+        'NOTICE',
+        'OPER',
+        'PART',
+        'PASS',
+        'PING',
+        'PONG',
+        'PRIVMSG',
+        'QUIT',
+        'REHASH',
+        'RESTART',
+        'RULES',
+        'SERVER',
+        'SERVICE',
+        'SERVLIST',
+        'SQUERY',
+        'SQUIT',
+        'SETNAME',
+        'SILENCE',
+        'STATS',
+        'SUMMON',
+        'TIME',
+        'TOPIC',
+        'TRACE',
+        'UHNAMES',
+        'USER',
+        'USERHOST',
+        'USERIP',
+        'USERS',
+        'VERSION',
+        'WALLOPS',
+        'WATCH',
+        'WHO',
+        'WHOIS',
+        'WHOWAS'
+    ],
+
+    /**
+     * IRC command completion.
+     *
+     * @param text Plain text
+     * @param caretPos Current caret position (0 means before the first character)
+     * @param iterCandidate Current iteration candidate (null if not iterating)
+     * @return Object with following properties:
+     *      text: new complete replacement text
+     *      caretPos: new caret position within new text
+     *      foundCmd: completed command (or null if not possible)
+     *      iterCandidate: current iterating candidate
+     */
+    completeCmd: function(text, caretPos, iterCandidate) {
+        var beforeCaret = text.substring(0, caretPos);
+        var afterCaret = text.substring(caretPos);
+        var doIterate = (iterCandidate !== null);
+        var ret = {
+            text: text,
+            caretPos: caretPos,
+            foundCmd: null,
+            iterCandidate: iterCandidate
+        };
+
+        // iteration?
+        var m = beforeCaret.match(/^\/([a-zA-Z]+) $/);
+        if (m) {
+            if (doIterate) {
+                var cmd = IrcUtils._nextWord(iterCandidate, m[1], IrcUtils._ircCommands);
+                beforeCaret = '/' + cmd + ' ';
+                return {
+                    text: beforeCaret + afterCaret,
+                    caretPos: beforeCaret.length,
+                    foundCmd: cmd,
+                    iterCandidate: iterCandidate
+                };
+            } else {
+                return ret;
+            }
+        }
+
+        // command completion?
+        var m = beforeCaret.match(/^\/([a-zA-Z]+)$/);
+        if (m) {
+            var cmd = IrcUtils._completeSingleWord(m[1], IrcUtils._ircCommands);
+            if (cmd === null) {
+                return ret;
+            }
+            beforeCaret = '/' + cmd + ' ';
+            if (afterCaret[0] == ' ') {
+                afterCaret = afterCaret.substring(1);
+            }
+            return {
+                text: beforeCaret,
+                caretPos: beforeCaret.length,
+                foundCmd: cmd,
+                iterCandidate: m[1]
+            };
+        }
+
+        // not found
+        return {
+            text: text,
+            caretPos: caretPos,
+            foundCmd: null
+        };
     }
 };
